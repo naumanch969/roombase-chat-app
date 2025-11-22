@@ -23,6 +23,7 @@ declare const chatForm: HTMLFormElement;
 declare const chatMessages: HTMLDivElement;
 declare const roomName: HTMLElement;
 declare const userList: HTMLUListElement;
+declare const userCount: HTMLElement;
 declare const queryParams: Record<string, string>;
 declare const username: string;
 declare const room: string;

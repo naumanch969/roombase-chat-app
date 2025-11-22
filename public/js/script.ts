@@ -28,6 +28,7 @@ const chatForm = document.getElementById("chat-form") as HTMLFormElement;
 const chatMessages = document.querySelector(".chat-messages") as HTMLDivElement;
 const roomName = document.getElementById("room-name") as HTMLElement;
 const userList = document.getElementById("users") as HTMLUListElement;
+const userCount = document.getElementById("user-count") as HTMLElement;
 
 // Get username and room from URL query parameters
 const queryParams = Qs.parse(location.search, {
@@ -120,4 +121,9 @@ function outputUsers(users: Array<{ username: string }>): void {
    userList.innerHTML = `
     ${users.map((user) => `<li>${user.username}</li>`).join("")}
   `;
+   
+   // Update user count badge
+   if (userCount) {
+      userCount.textContent = `(${users.length})`;
+   }
 }

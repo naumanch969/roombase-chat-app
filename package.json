@@ -4,7 +4,9 @@
    "description": "",
    "main": "app.js",
    "scripts": {
-      "test": "echo \"Error: no test specified\" && exit 1",
+      "test": "jest",
+      "test:watch": "jest --watch",
+      "test:coverage": "jest --coverage",
       "build": "npm run build:server && npm run build:client",
       "build:server": "tsc",
       "build:client": "webpack --config webpack.config.js",
@@ -13,27 +15,36 @@
       "dev:watch": "nodemon --exec ts-node src/server.ts"
    },
    "keywords": [],
-   "author": "Mehedi Islam Ripon",
+   "author": "Nauman Chaudhry",
    "license": "ISC",
    "dependencies": {
+      "@types/uuid": "^10.0.0",
       "express": "^5.2.1",
       "moment-timezone": "^0.6.0",
-      "socket.io": "^4.8.1"
+      "socket.io": "^4.8.1",
+      "uuid": "^13.0.0"
    },
    "engines": {
       "node": ">=10.0.0"
    },
    "devDependencies": {
       "@types/express": "^5.0.6",
+      "@types/jest": "^30.0.0",
       "@types/moment-timezone": "^0.5.13",
       "@types/node": "^25.0.2",
       "@types/socket.io-client": "^1.4.36",
+      "@types/supertest": "^6.0.3",
+      "@types/winston": "^2.4.4",
+      "jest": "^30.2.0",
       "nodemon": "^3.1.11",
+      "supertest": "^7.1.4",
+      "ts-jest": "^29.4.6",
       "ts-loader": "^9.5.4",
       "ts-node": "^10.9.2",
       "typescript": "^5.9.3",
       "webpack": "^5.103.0",
       "webpack-cli": "^6.0.1",
-      "webpack-dev-middleware": "^7.4.5"
+      "webpack-dev-middleware": "^7.4.5",
+      "winston": "^3.19.0"
    }
 }

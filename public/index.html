@@ -16,45 +16,51 @@
          crossorigin="anonymous"
       />
       <link rel="stylesheet" href="css/style.css" />
-      <title>Chat Application by Mehedi</title>
+      <title>Chat Application</title>
    </head>
    <body>
       <div class="join-container">
-         <header class="join-header">
-            <h1 style="color: #f5f6f7">
-               <i class="fas fa-comment-dots"></i> XeroxChat
-            </h1>
-         </header>
-         <main class="join-main">
-            <form action="chat.html">
-               <div class="form-control">
-                  <label style="color: #f5f6f7" for="username">Username</label>
-                  <input
-                     type="text"
-                     name="username"
-                     id="username"
-                     placeholder="Enter username..."
-                     required
-                  />
+         <div class="join-card">
+            <header class="join-header">
+               <div class="logo-wrapper">
+                  <i class="fas fa-comments"></i>
                </div>
-               <div class="form-control">
-                  <label style="color: #f5f6f7" for="room">Select Room</label>
-                  <select name="room" id="room">
-                     <option value="Room-1">Room-1</option>
-                     <option value="Room-2">Room-2</option>
-                     <option value="Room-3">Room-3</option>
-                     <option value="Room-4">Room-4</option>
-                     <option value="Room-5">Room-5</option>
-                  </select>
-               </div>
-               <button type="submit" class="btn">Join Chat</button>
-            </form>
-         </main>
-         <footer style="margin-top: 25px">
-            <div style="text-align: center" class="credit">
-               &copy; Mehedi Islam Ripon
-            </div>
-         </footer>
+               <h1>XeroxChat</h1>
+               <p class="subtitle">Connect with friends in real-time</p>
+            </header>
+            <main class="join-main">
+               <form action="chat.html">
+                  <div class="form-control">
+                     <label for="username">
+                        <i class="fas fa-user"></i> Username
+                     </label>
+                     <input
+                        type="text"
+                        name="username"
+                        id="username"
+                        placeholder="Enter your username"
+                        required
+                     />
+                  </div>
+                  <div class="form-control">
+                     <label for="room">
+                        <i class="fas fa-door-open"></i> Select Room
+                     </label>
+                     <select name="room" id="room">
+                        <option value="Room-1">General Chat</option>
+                        <option value="Room-2">Gaming</option>
+                        <option value="Room-3">Tech Talk</option>
+                        <option value="Room-4">Creative</option>
+                        <option value="Room-5">Music Lounge</option>
+                     </select>
+                  </div>
+                  <button type="submit" class="btn btn-join">
+                     <span>Join Chat</span>
+                     <i class="fas fa-arrow-right"></i>
+                  </button>
+               </form>
+            </main>
+         </div>
       </div>
    </body>
 </html>
