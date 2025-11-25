@@ -1,7 +1,4 @@
-/**
- * Type definitions for chat application
- */
-
+  
 export interface User {
    id: string;
    username: string;
@@ -64,8 +61,7 @@ export interface ParsedCommand {
    raw: string;
 }
 
-// DSL Types for moderation rules
-export interface ModerationRule {
+ export interface ModerationRule {
    id: string;
    name: string;
    condition: string;
