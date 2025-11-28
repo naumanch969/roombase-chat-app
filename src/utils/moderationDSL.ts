@@ -78,7 +78,7 @@ export class ModerationDSLParser {
    private parseCondition(condStr: string): RuleCondition | null {
       // Try different operators in order of specificity
       const operators = ['contains', 'equals', 'matches', '>=', '<=', '>', '<'];
-
+console.log("these are the operators", operators)
       for (const op of operators) {
          const parts = condStr.split(` ${op} `);
          if (parts.length === 2) {
@@ -90,11 +90,9 @@ export class ModerationDSLParser {
             if (!isNaN(numValue)) {
                value = numValue;
             }
-
-            return { field, operator: op, value };
+            return { field, operator: op, value }
          }
       }
-
       return null;
    }
 
