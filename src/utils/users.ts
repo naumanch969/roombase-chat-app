@@ -38,7 +38,7 @@ class UserRepository {
     * Check representation invariant
     */
    private checkRep(): void {
-      // Check uniqueness
+      // Check uniqueness of ids
       const socketIds = new Set<string>();
       const usernames = new Set<string>();
 

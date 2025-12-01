@@ -6,9 +6,7 @@
 
 import { ParsedCommand } from '../types/index';
 
-/**
- * Token types for lexical analysis
- */
+
 enum TokenType {
    COMMAND = 'COMMAND',
    ARGUMENT = 'ARGUMENT',
@@ -22,9 +20,6 @@ interface Token {
    value: string;
 }
 
-/**
- * AST Node types for command representation
- */
 interface ASTNode {
    type: string;
    value?: string;
