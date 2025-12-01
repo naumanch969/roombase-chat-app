@@ -103,9 +103,7 @@ export class MessageRepository {
       this.lock = true;
    }
 
-   /**
-    * Release lock
-    */
+   
    private releaseLock(): void {
       this.lock = false;
    }
@@ -345,8 +343,6 @@ export class MessageRepository {
 
    /**
     * Get message thread (message with all nested replies)
-    * Demonstrates recursive data structure traversal
-    * 
     * @param messageId - Root message ID
     * @returns Message with populated replies tree
     */
@@ -453,6 +449,7 @@ export class MessageRepository {
          for (const reply of msg.replies) {
             if (!reply.deleted) {
                const depth = calculateDepth(reply);
+               console.log("this is depth", depth);
                maxDepth = Math.max(maxDepth, depth);
             }
          }
