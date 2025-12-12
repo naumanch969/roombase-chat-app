@@ -23,7 +23,12 @@ const botName = 'XeroxChat Bot';
 // run when client connects
 io.on('connection', (socket) => {
    socket.on('joinRoom', ({ username, room }) => {
-      const user = userJoin(socket.id, username, room);
+      const { error, user } = userJoin(socket.id, username, room);
+
+      if (error) {
+         socket.emit('usernameError', error);
+         return;
+      }
 
       socket.join(user.room);
 
