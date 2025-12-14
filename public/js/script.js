@@ -10,6 +10,12 @@ const { username, room } = Qs.parse(location.search, {
 
 const socket = io();
 
+// handle duplicate username error from server
+socket.on('usernameError', (msg) => {
+   alert(msg);
+   window.location = '/';
+});
+
 // Join chatroom
 socket.emit('joinRoom', { username, room });
 

@@ -2,11 +2,18 @@ const users = [];
 
 // join user to chat
 function userJoin(id, username, room) {
+   // disallow duplicate usernames (case-insensitive)
+   const existingUser = users.find((u) => u.username.toLowerCase() === username.toLowerCase());
+
+   if (existingUser) {
+      return { error: 'Username is already taken' };
+   }
+
    const user = { id, username, room };
 
    users.push(user);
 
-   return user;
+   return { user };
 }
 
 // get current user
