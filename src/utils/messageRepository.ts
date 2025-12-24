@@ -103,7 +103,7 @@ export class MessageRepository {
       this.lock = true;
    }
 
-   
+
    private releaseLock(): void {
       this.lock = false;
    }
@@ -156,7 +156,7 @@ export class MessageRepository {
             id: generateId(),
             username,
             text,
-            time: moment().tz('Asia/Dhaka').format('h:mm a'),
+            time: moment().tz('Asia/Karachi').format('h:mm a'),
             timestamp: now,
             room,
             edited: false,
@@ -217,28 +217,46 @@ export class MessageRepository {
       newText: string,
       username: string
    ): Promise<Message | null> {
+      console.log('🔍 DEBUG editMessage - messageId:', messageId);
+      console.log('🔍 DEBUG editMessage - newText:', newText);
+      console.log('🔍 DEBUG editMessage - username:', username);
+
       // Precondition checks
       if (!messageId) {
+         console.log('🔍 DEBUG editMessage - ERROR: messageId is falsy');
          throw new Error('Precondition violated: messageId cannot be null');
       }
       if (!newText || newText.length === 0) {
+         console.log('🔍 DEBUG editMessage - ERROR: newText is empty');
          throw new Error('Precondition violated: newText must be non-empty');
       }
 
       await this.acquireLock();
       try {
          const message = this.messages.get(messageId);
+         console.log('🔍 DEBUG editMessage - message found:', message ? 'YES' : 'NO');
+
+         if (message) {
+            console.log('🔍 DEBUG editMessage - message.username:', message.username);
+            console.log('🔍 DEBUG editMessage - message.deleted:', message.deleted);
+         }
 
          if (!message) {
+            console.log('🔍 DEBUG editMessage - ERROR: message does not exist');
             throw new Error('Precondition violated: message does not exist');
          }
          if (message.deleted) {
+            console.log('🔍 DEBUG editMessage - ERROR: message is deleted');
             throw new Error('Precondition violated: cannot edit deleted message');
          }
          if (message.username !== username) {
+            console.log('🔍 DEBUG editMessage - ERROR: username mismatch');
+            console.log('🔍 DEBUG editMessage - Expected:', message.username, 'Got:', username);
             // Authorization failed
             return null;
          }
+
+         console.log('🔍 DEBUG editMessage - All checks passed, proceeding with edit');
 
          // Save current text to edit history
          const editRecord: MessageEdit = {
@@ -251,11 +269,15 @@ export class MessageRepository {
          // Update message
          message.text = newText;
          message.edited = true;
-         message.time = moment().tz('Asia/Dhaka').format('h:mm a');
+         message.time = moment().tz('Asia/Karachi').format('h:mm a');
          message.timestamp = Date.now();
 
+         console.log('🔍 DEBUG editMessage - Message updated successfully');
          this.checkRep();
          return message;
+      } catch (error) {
+         console.log('🔍 DEBUG editMessage - Exception caught:', error);
+         throw error;
       } finally {
          this.releaseLock();
       }
@@ -394,7 +416,7 @@ export class MessageRepository {
       const searchRecursive = (msg: Message): boolean => {
          // Base case: Check this message
          const matchesThisMessage = msg.text.toLowerCase().includes(lowerKeyword);
-         
+
          if (matchesThisMessage) {
             results.push(msg);
          }

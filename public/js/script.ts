@@ -13,9 +13,12 @@ declare const Qs: {
 };
 
 interface Message {
+   id: string;
    username: string;
    text: string;
    time: string;
+   edited?: boolean;
+   parentId?: string;
 }
 
 interface RoomUsersData {
@@ -72,6 +75,61 @@ socket.on("message", (message: Message) => {
 });
 
 /**
+ * Handle message edits from server
+ */
+socket.on("messageEdited", (data: { id: string; text: string; edited: boolean; time: string }) => {
+   const messageDiv = document.querySelector(`[data-message-id="${data.id}"]`) as HTMLDivElement;
+   if (messageDiv) {
+      const textElement = messageDiv.querySelector(".text") as HTMLParagraphElement;
+      if (textElement) {
+         textElement.textContent = data.text;
+      }
+
+      // Add or update edited badge
+      const metaElement = messageDiv.querySelector(".meta") as HTMLParagraphElement;
+      if (metaElement && !metaElement.querySelector(".edited-badge")) {
+         const copyBtn = metaElement.querySelector(".copy-id-btn");
+         const editedBadge = document.createElement("span");
+         editedBadge.className = "edited-badge";
+         editedBadge.textContent = "edited";
+         if (copyBtn) {
+            metaElement.insertBefore(editedBadge, copyBtn);
+         }
+      }
+   }
+});
+
+/**
+ * Handle message deletes from server
+ */
+socket.on("messageDeleted", (data: { id: string }) => {
+   const messageDiv = document.querySelector(`[data-message-id="${data.id}"]`) as HTMLDivElement;
+   if (messageDiv) {
+      messageDiv.style.opacity = "0";
+      messageDiv.style.transform = "translateX(-20px)";
+      setTimeout(() => {
+         messageDiv.remove();
+      }, 300);
+   }
+});
+
+/**
+ * Handle error messages from server
+ */
+socket.on("error", (errorMsg: string) => {
+   console.error("Server error:", errorMsg);
+   showNotification(errorMsg, "error");
+});
+
+/**
+ * Handle warning messages from server
+ */
+socket.on("warning", (warningMsg: string) => {
+   console.warn("Server warning:", warningMsg);
+   showNotification(warningMsg, "warning");
+});
+
+/**
  * Handle chat form submission
  */
 chatForm.addEventListener("submit", (e: SubmitEvent) => {
@@ -97,12 +155,67 @@ chatForm.addEventListener("submit", (e: SubmitEvent) => {
 function outputMessage(message: Message): void {
    const div = document.createElement("div");
    div.classList.add("message");
-   div.innerHTML = `<p class="meta">${message.username} <span>${message.time}</span></p>
+   div.setAttribute("data-message-id", message.id);
+
+   const editedBadge = message.edited ? '<span class="edited-badge">edited</span>' : '';
+
+   div.innerHTML = `<p class="meta">
+      ${message.username} 
+      <span>${message.time}</span>
+      ${editedBadge}
+      <button class="copy-id-btn" data-id="${message.id}" title="Copy message ID">
+         <i class="fas fa-copy"></i>
+      </button>
+   </p>
    <p class="text">
       ${message.text}
    </p>`;
 
+   // Add click event listener to copy button
+   const copyBtn = div.querySelector(".copy-id-btn") as HTMLButtonElement;
+   if (copyBtn) {
+      copyBtn.addEventListener("click", () => {
+         copyMessageId(message.id);
+      });
+   }
+
    chatMessages.appendChild(div);
+}
+
+/**
+ * Copy message ID to clipboard
+ * @param messageId - The ID of the message to copy
+ */
+function copyMessageId(messageId: string): void {
+   navigator.clipboard.writeText(messageId).then(() => {
+      showNotification(`ID copied: ${messageId}`, "success");
+   }).catch((err) => {
+      console.error("Failed to copy message ID:", err);
+      showNotification("Failed to copy message ID", "error");
+   });
+}
+
+/**
+ * Show a notification to the user
+ * @param message - The message to display
+ * @param type - The type of notification (success, error, warning)
+ */
+function showNotification(message: string, type: "success" | "error" | "warning" = "success"): void {
+   const notification = document.createElement("div");
+   notification.classList.add("notification", `notification-${type}`);
+   notification.textContent = message;
+   document.body.appendChild(notification);
+
+   setTimeout(() => {
+      notification.classList.add("show");
+   }, 10);
+
+   setTimeout(() => {
+      notification.classList.remove("show");
+      setTimeout(() => {
+         notification.remove();
+      }, 300);
+   }, 3000);
 }
 
 /**
@@ -121,7 +234,7 @@ function outputUsers(users: Array<{ username: string }>): void {
    userList.innerHTML = `
     ${users.map((user) => `<li>${user.username}</li>`).join("")}
   `;
-   
+
    // Update user count badge
    if (userCount) {
       userCount.textContent = `(${users.length})`;

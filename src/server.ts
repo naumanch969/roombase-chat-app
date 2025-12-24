@@ -45,13 +45,35 @@ async function handleCommand(socket: any, msg: string, user: any): Promise<void>
    try {
       const parsedCommand = commandParser.parse(msg);
 
+      console.log('🔍 DEBUG: Raw message:', msg);
+      console.log('🔍 DEBUG: Parsed command:', parsedCommand);
+
       logger.debug(`Command parsed: ${parsedCommand.type}`, {
          user: user.username,
          command: parsedCommand
       });
 
       if (!commandParser.validate(parsedCommand)) {
-         socket.emit("error", `Invalid command syntax: ${msg}`);
+         // Provide helpful error messages based on command type
+         let errorMsg = `Invalid command syntax: ${msg}`;
+         switch (parsedCommand.type) {
+            case 'edit':
+               errorMsg = "Invalid /edit command. Usage: /edit <messageId> <newText>";
+               break;
+            case 'delete':
+               errorMsg = "Invalid /delete command. Usage: /delete <messageId>";
+               break;
+            case 'mute':
+               errorMsg = "Invalid /mute command. Usage: /mute <username>";
+               break;
+            case 'ban':
+               errorMsg = "Invalid /ban command. Usage: /ban <username>";
+               break;
+            case 'reply':
+               errorMsg = "Invalid /reply command. Usage: /reply <messageId> <text>";
+               break;
+         }
+         socket.emit("error", errorMsg);
          return;
       }
 
@@ -75,6 +97,7 @@ async function handleCommand(socket: any, msg: string, user: any): Promise<void>
             socket.emit("error", "Unknown command");
       }
    } catch (error) {
+      console.log('teste', error)
       logger.error('Error handling command', { error, user: user.username, msg });
       socket.emit("error", "An error occurred while processing the command");
    } finally {
@@ -86,26 +109,64 @@ async function handleCommand(socket: any, msg: string, user: any): Promise<void>
  * Handle /edit command
  */
 async function handleEditCommand(socket: any, args: string[], user: any): Promise<void> {
+   console.log('🔍 DEBUG handleEditCommand - args:', args);
+   console.log('🔍 DEBUG handleEditCommand - args.length:', args.length);
+
    const messageId = args[0];
-   const newText = args.slice(1).join(' ');
+   const newText = args.slice(1).join(' ').trim(); // Trim whitespace
 
-   const editedMessage = await messageRepository.editMessage(messageId, newText, user.username);
+   console.log('🔍 DEBUG handleEditCommand - messageId:', messageId);
+   console.log('🔍 DEBUG handleEditCommand - newText:', newText);
+   console.log('🔍 DEBUG handleEditCommand - newText.length:', newText.length);
+   console.log('🔍 DEBUG handleEditCommand - user.username:', user.username);
 
-   if (!editedMessage) {
-      socket.emit("error", "Could not edit message. You can only edit your own messages.");
-      logger.warn(`Edit failed: ${user.username} tried to edit ${messageId}`);
+   // Validate that newText is not empty
+   if (!newText || newText.length === 0) {
+      socket.emit("error", "Cannot edit message with empty text. Usage: /edit <messageId> <newText>");
+      logger.warn(`Edit failed: ${user.username} provided empty text for ${messageId}`);
       return;
    }
 
-   // Broadcast the edit to all users in the room
-   io.to(user.room).emit("messageEdited", {
-      id: editedMessage.id,
-      text: editedMessage.text,
-      edited: true,
-      time: editedMessage.time
-   });
+   try {
+      const editedMessage = await messageRepository.editMessage(messageId, newText, user.username);
 
-   logger.info(`Message edited: ${messageId} by ${user.username}`);
+      if (!editedMessage) {
+         console.log('🔍 DEBUG handleEditCommand - editedMessage is null (authorization failed)');
+         socket.emit("error", "Could not edit message. You can only edit your own messages.");
+         logger.warn(`Edit failed: ${user.username} tried to edit ${messageId}`);
+         return;
+      }
+
+      console.log('🔍 DEBUG handleEditCommand - editedMessage:', editedMessage);
+
+      // Broadcast the edit to all users in the room
+      io.to(user.room).emit("messageEdited", {
+         id: editedMessage.id,
+         text: editedMessage.text,
+         edited: true,
+         time: editedMessage.time
+      });
+
+      logger.info(`Message edited: ${messageId} by ${user.username}`);
+   } catch (error) {
+      console.log('🔍 DEBUG handleEditCommand - Error caught:', error);
+
+      // Provide more specific error messages
+      if (error instanceof Error) {
+         if (error.message.includes('message does not exist')) {
+            socket.emit("error", `Message with ID "${messageId}" not found.`);
+         } else if (error.message.includes('deleted message')) {
+            socket.emit("error", "Cannot edit a deleted message.");
+         } else {
+            socket.emit("error", `Failed to edit message: ${error.message}`);
+         }
+      } else {
+         socket.emit("error", "An error occurred while editing the message");
+      }
+
+      // Log the error but don't re-throw it since we've already handled it
+      logger.error('Error in handleEditCommand', { error, messageId, username: user.username });
+   }
 }
 
 /**
@@ -114,18 +175,30 @@ async function handleEditCommand(socket: any, args: string[], user: any): Promis
 async function handleDeleteCommand(socket: any, args: string[], user: any): Promise<void> {
    const messageId = args[0];
 
-   const success = await messageRepository.deleteMessage(messageId, user.username);
+   try {
+      const success = await messageRepository.deleteMessage(messageId, user.username);
 
-   if (!success) {
-      socket.emit("error", "Could not delete message. You can only delete your own messages.");
-      logger.warn(`Delete failed: ${user.username} tried to delete ${messageId}`);
-      return;
+      if (!success) {
+         socket.emit("error", "Could not delete message. You can only delete your own messages.");
+         logger.warn(`Delete failed: ${user.username} tried to delete ${messageId}`);
+         return;
+      }
+
+      // Broadcast the deletion to all users in the room
+      io.to(user.room).emit("messageDeleted", { id: messageId });
+
+      logger.info(`Message deleted: ${messageId} by ${user.username}`);
+   } catch (error) {
+      console.log('🔍 DEBUG handleDeleteCommand - Error caught:', error);
+
+      if (error instanceof Error && error.message.includes('message does not exist')) {
+         socket.emit("error", `Message with ID "${messageId}" not found.`);
+      } else {
+         socket.emit("error", "An error occurred while deleting the message");
+      }
+
+      logger.error('Error in handleDeleteCommand', { error, messageId, username: user.username });
    }
-
-   // Broadcast the deletion to all users in the room
-   io.to(user.room).emit("messageDeleted", { id: messageId });
-
-   logger.info(`Message deleted: ${messageId} by ${user.username}`);
 }
 
 /**

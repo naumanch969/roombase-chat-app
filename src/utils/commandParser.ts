@@ -217,8 +217,8 @@ class CommandParser {
 
       const commandType = ast.value.toLowerCase();
       const validCommands = ['edit', 'delete', 'mute', 'ban', 'reply'];
-      
-      const type = validCommands.includes(commandType) 
+
+      const type = validCommands.includes(commandType)
          ? commandType as ParsedCommand['type']
          : 'unknown';
 
@@ -247,7 +247,12 @@ class CommandParser {
       switch (command.type) {
          case 'edit':
             // /edit <messageId> <newText>
-            return command.args.length >= 2;
+            // Must have at least 2 args, and the text (args[1+]) must not be empty when joined
+            if (command.args.length < 2) {
+               return false;
+            }
+            const editText = command.args.slice(1).join(' ').trim();
+            return editText.length > 0;
          case 'delete':
             // /delete <messageId>
             return command.args.length === 1;
@@ -257,7 +262,11 @@ class CommandParser {
             return command.args.length === 1;
          case 'reply':
             // /reply <messageId> <text>
-            return command.args.length >= 2;
+            if (command.args.length < 2) {
+               return false;
+            }
+            const replyText = command.args.slice(1).join(' ').trim();
+            return replyText.length > 0;
          case 'unknown':
             return false;
          default:

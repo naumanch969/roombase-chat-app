@@ -9,9 +9,12 @@ declare const Qs: {
     parse: (str: string, options?: QsParseOptions) => Record<string, string>;
 };
 interface Message {
+    id: string;
     username: string;
     text: string;
     time: string;
+    edited?: boolean;
+    parentId?: string;
 }
 interface RoomUsersData {
     room: string;
@@ -33,6 +36,17 @@ declare const socket: SocketIOClient.Socket;
  * @param message - The message object containing username, text, and time
  */
 declare function outputMessage(message: Message): void;
+/**
+ * Copy message ID to clipboard
+ * @param messageId - The ID of the message to copy
+ */
+declare function copyMessageId(messageId: string): void;
+/**
+ * Show a notification to the user
+ * @param message - The message to display
+ * @param type - The type of notification (success, error, warning)
+ */
+declare function showNotification(message: string, type?: "success" | "error" | "warning"): void;
 /**
  * Update room name in the DOM
  * @param roomName - The name of the current room
